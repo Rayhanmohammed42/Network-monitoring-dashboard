@@ -1,0 +1,5709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Network Monitoring Dashboard</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #1f2937;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 22px 30px;
+        }
+
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        header p {
+            color: #d1d5db;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 25px auto;
+            padding: 0 20px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 22px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+
+        .section h2 {
+            margin-bottom: 8px;
+            font-size: 21px;
+        }
+
+        .section-description {
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        /* =========================
+           OVERVIEW CARDS
+        ========================= */
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+
+        .card-title {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .card-value {
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        /* =========================
+           FORM
+        ========================= */
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 12px;
+        }
+
+        input {
+            width: 100%;
+            padding: 11px 13px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        button {
+            border: none;
+            border-radius: 7px;
+            padding: 11px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-success {
+            background: #16a34a;
+            color: white;
+        }
+
+        /* =========================
+           TABLE
+        ========================= */
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 13px 10px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f9fafb;
+            font-weight: 600;
+        }
+
+        /* =========================
+           STATUS
+        ========================= */
+
+        .status {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-up {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-down {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-neutral {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        /* =========================
+           ACTIONS
+        ========================= */
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        .actions button {
+            padding: 7px 10px;
+            font-size: 12px;
+        }
+
+        /* =========================
+           DETAILS
+        ========================= */
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .detail-box {
+            background: #f9fafb;
+            padding: 17px;
+            border-radius: 9px;
+        }
+
+        .detail-label {
+            color: #6b7280;
+            font-size: 12px;
+            margin-bottom: 7px;
+        }
+
+        .detail-value {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        /* =========================
+           STATISTICS
+        ========================= */
+
+        .statistics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .stat-box {
+            background: #f9fafb;
+            border-radius: 9px;
+            padding: 18px;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 13px;
+            margin-bottom: 7px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* =========================
+           CHART
+        ========================= */
+
+        .chart-container {
+            position: relative;
+            height: 330px;
+            width: 100%;
+        }
+
+        /* =========================
+           TROUBLESHOOTER
+        ========================= */
+
+        .troubleshooter-form {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .troubleshooter-result {
+            display: none;
+        }
+
+        .troubleshooter-result.visible {
+            display: block;
+        }
+
+        .diagnostic-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 18px;
+        }
+
+        .diagnostic-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 18px;
+            background: #ffffff;
+        }
+
+        .diagnostic-title {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 9px;
+        }
+
+        .diagnostic-status {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .diagnostic-detail {
+            color: #4b5563;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .diagnostic-up {
+            color: #15803d;
+        }
+
+        .diagnostic-down {
+            color: #dc2626;
+        }
+
+        .diagnostic-warning {
+            color: #ca8a04;
+        }
+
+        .overall-result {
+            margin-top: 18px;
+            padding: 16px;
+            border-radius: 9px;
+            background: #f9fafb;
+        }
+
+        .overall-result strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* =========================
+           ALERT
+        ========================= */
+
+        .alert {
+            display: none;
+            padding: 13px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert.visible {
+            display: block;
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        /* =========================
+           EMPTY
+        ========================= */
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #6b7280;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 1000px) {
+
+            .cards,
+            .details-grid,
+            .statistics-grid,
+            .diagnostic-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+        }
+
+        @media (max-width: 700px) {
+
+            .cards,
+            .details-grid,
+            .statistics-grid,
+            .diagnostic-grid,
+            .form-row,
+            .troubleshooter-form {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 23px;
+            }
+
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+<header>
+
+    <h1>Network Monitoring Dashboard</h1>
+
+    <p>
+        Monitor network devices, latency, uptime and troubleshoot connectivity.
+    </p>
+
+</header>
+
+
+<div class="container">
+
+
+    <!-- ALERT -->
+
+    <div id="alertBox" class="alert"></div>
+
+
+    <!-- =========================
+         OVERVIEW
+    ========================= -->
+
+    <div class="cards">
+
+        <div class="card">
+
+            <div class="card-title">
+                Total Devices
+            </div>
+
+            <div
+                id="totalDevices"
+                class="card-value"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Devices UP
+            </div>
+
+            <div
+                id="upDevices"
+                class="card-value"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Devices DOWN
+            </div>
+
+            <div
+                id="downDevices"
+                class="card-value"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Average Latency
+            </div>
+
+            <div
+                id="averageLatency"
+                class="card-value"
+            >
+                0 ms
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         ADD DEVICE
+    ========================= -->
+
+    <div class="section">
+
+        <h2>Add Network Device</h2>
+
+        <p class="section-description">
+            Add a device or host that you want to monitor.
+        </p>
+
+
+        <div class="form-row">
+
+            <input
+                id="deviceName"
+                type="text"
+                placeholder="Device name"
+            >
+
+
+            <input
+                id="deviceIP"
+                type="text"
+                placeholder="IP address or hostname"
+            >
+
+
+            <button
+                class="btn-primary"
+                onclick="addDevice()"
+            >
+                Add Device
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         DEVICES
+    ========================= -->
+
+    <div class="section">
+
+        <h2>Network Devices</h2>
+
+        <p class="section-description">
+            Current monitoring status of configured devices.
+        </p>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Name</th>
+
+                        <th>IP / Host</th>
+
+                        <th>Status</th>
+
+                        <th>Latency</th>
+
+                        <th>Uptime</th>
+
+                        <th>Actions</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="deviceTableBody"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         DEVICE DETAILS
+    ========================= -->
+
+    <div
+        id="detailsSection"
+        class="section"
+        style="display:none;"
+    >
+
+        <h2>Device Details</h2>
+
+        <p
+            id="detailsDeviceName"
+            class="section-description"
+        ></p>
+
+
+        <div class="details-grid">
+
+            <div class="detail-box">
+
+                <div class="detail-label">
+                    IP Address
+                </div>
+
+                <div
+                    id="detailIP"
+                    class="detail-value"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="detail-box">
+
+                <div class="detail-label">
+                    Current Status
+                </div>
+
+                <div
+                    id="detailStatus"
+                    class="detail-value"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="detail-box">
+
+                <div class="detail-label">
+                    Latency
+                </div>
+
+                <div
+                    id="detailLatency"
+                    class="detail-value"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="detail-box">
+
+                <div class="detail-label">
+                    Uptime
+                </div>
+
+                <div
+                    id="detailUptime"
+                    class="detail-value"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="detail-box">
+
+                <div class="detail-label">
+                    Total Checks
+                </div>
+
+                <div
+                    id="detailChecks"
+                    class="detail-value"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="detail-box">
+
+                <div class="detail-label">
+                    Average Latency
+                </div>
+
+                <div
+                    id="detailAverageLatency"
+                    class="detail-value"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="detail-box">
+
+                <div class="detail-label">
+                    Outage Events
+                </div>
+
+                <div
+                    id="detailOutages"
+                    class="detail-value"
+                >
+                    -
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         STATISTICS
+    ========================= -->
+
+    <div
+        id="statisticsSection"
+        class="section"
+        style="display:none;"
+    >
+
+        <h2>Device Statistics</h2>
+
+        <p
+            id="statisticsDeviceName"
+            class="section-description"
+        ></p>
+
+
+        <div class="statistics-grid">
+
+            <div class="stat-box">
+
+                <div class="stat-label">
+                    Total Checks
+                </div>
+
+                <div
+                    id="statTotal"
+                    class="stat-value"
+                >
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="stat-box">
+
+                <div class="stat-label">
+                    Successful Checks
+                </div>
+
+                <div
+                    id="statUp"
+                    class="stat-value"
+                >
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="stat-box">
+
+                <div class="stat-label">
+                    Failed Checks
+                </div>
+
+                <div
+                    id="statDown"
+                    class="stat-value"
+                >
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="stat-box">
+
+                <div class="stat-label">
+                    Uptime
+                </div>
+
+                <div
+                    id="statUptime"
+                    class="stat-value"
+                >
+                    0%
+                </div>
+
+            </div>
+
+
+            <div class="stat-box">
+
+                <div class="stat-label">
+                    Average Latency
+                </div>
+
+                <div
+                    id="statAverage"
+                    class="stat-value"
+                >
+                    0 ms
+                </div>
+
+            </div>
+
+
+            <div class="stat-box">
+
+                <div class="stat-label">
+                    Highest Latency
+                </div>
+
+                <div
+                    id="statHighest"
+                    class="stat-value"
+                >
+                    0 ms
+                </div>
+
+            </div>
+
+
+            <div class="stat-box">
+
+                <div class="stat-label">
+                    Lowest Latency
+                </div>
+
+                <div
+                    id="statLowest"
+                    class="stat-value"
+                >
+                    0 ms
+                </div>
+
+            </div>
+
+
+            <div class="stat-box">
+
+                <div class="stat-label">
+                    Outage Events
+                </div>
+
+                <div
+                    id="statOutages"
+                    class="stat-value"
+                >
+                    0
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         LATENCY HISTORY / GRAPH
+    ========================= -->
+
+    <div
+        id="chartSection"
+        class="section"
+        style="display:none;"
+    >
+
+        <h2>Latency History</h2>
+
+        <p
+            id="chartDeviceName"
+            class="section-description"
+        ></p>
+
+
+        <div class="chart-container">
+
+            <canvas id="latencyChart"></canvas>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         HISTORY
+    ========================= -->
+
+    <div
+        id="historySection"
+        class="section"
+        style="display:none;"
+    >
+
+        <h2>Monitoring History</h2>
+
+        <p
+            id="historyDeviceName"
+            class="section-description"
+        ></p>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Status</th>
+
+                        <th>Latency</th>
+
+                        <th>Checked At</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="historyTableBody"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         NETWORK TROUBLESHOOTER
+    ========================= -->
+
+    <div class="section">
+
+        <h2>Network Troubleshooter</h2>
+
+        <p class="section-description">
+            Test reachability, packet loss, DNS resolution and TCP connectivity.
+        </p>
+
+
+        <div class="troubleshooter-form">
+
+            <input
+                id="troubleshootHost"
+                type="text"
+                placeholder="Enter IP address or hostname (example: google.com)"
+            >
+
+
+            <button
+                class="btn-primary"
+                onclick="runTroubleshooter()"
+            >
+                Run Diagnostic
+            </button>
+
+        </div>
+
+
+        <div
+            id="troubleshooterResult"
+            class="troubleshooter-result"
+        >
+
+            <h3>
+                Diagnostic Results
+            </h3>
+
+
+            <div class="diagnostic-grid">
+
+
+                <!-- PING -->
+
+                <div class="diagnostic-card">
+
+                    <div class="diagnostic-title">
+                        Ping / Reachability
+                    </div>
+
+                    <div
+                        id="diagnosticPingStatus"
+                        class="diagnostic-status"
+                    >
+                        -
+                    </div>
+
+                    <div
+                        id="diagnosticPingDetails"
+                        class="diagnostic-detail"
+                    >
+                        -
+                    </div>
+
+                </div>
+
+
+                <!-- PACKET LOSS -->
+
+                <div class="diagnostic-card">
+
+                    <div class="diagnostic-title">
+                        Packet Loss
+                    </div>
+
+                    <div
+                        id="diagnosticPacketStatus"
+                        class="diagnostic-status"
+                    >
+                        -
+                    </div>
+
+                    <div
+                        id="diagnosticPacketDetails"
+                        class="diagnostic-detail"
+                    >
+                        -
+                    </div>
+
+                </div>
+
+
+                <!-- DNS -->
+
+                <div class="diagnostic-card">
+
+                    <div class="diagnostic-title">
+                        DNS Resolution
+                    </div>
+
+                    <div
+                        id="diagnosticDNSStatus"
+                        class="diagnostic-status"
+                    >
+                        -
+                    </div>
+
+                    <div
+                        id="diagnosticDNSDetails"
+                        class="diagnostic-detail"
+                    >
+                        -
+                    </div>
+
+                </div>
+
+
+                <!-- TCP -->
+
+                <div class="diagnostic-card">
+
+                    <div class="diagnostic-title">
+                        TCP Port 443
+                    </div>
+
+                    <div
+                        id="diagnosticTCPStatus"
+                        class="diagnostic-status"
+                    >
+                        -
+                    </div>
+
+                    <div
+                        id="diagnosticTCPDetails"
+                        class="diagnostic-detail"
+                    >
+                        -
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="overall-result">
+
+                <strong>
+                    Overall Result
+                </strong>
+
+                <span id="diagnosticOverall">
+                    -
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    // =========================================================
+    // CONFIGURATION
+    // =========================================================
+
+    const API_URL =
+        "http://127.0.0.1:5000/api";
+
+
+    let devices = [];
+
+    let latencyChart = null;
+
+
+    // =========================================================
+    // HELPERS
+    // =========================================================
+
+    function escapeHtml(value) {
+
+        return String(value)
+
+            .replace(/&/g, "&amp;")
+
+            .replace(/</g, "&lt;")
+
+            .replace(/>/g, "&gt;")
+
+            .replace(/"/g, "&quot;")
+
+            .replace(/'/g, "&#039;");
+
+    }
+
+
+    function escapeJs(value) {
+
+        return String(value)
+
+            .replace(/\\/g, "\\\\")
+
+            .replace(/'/g, "\\'")
+
+            .replace(/\n/g, "\\n")
+
+            .replace(/\r/g, "\\r");
+
+    }
+
+
+    function formatDate(dateString) {
+
+        if (!dateString) {
+
+            return "-";
+
+        }
+
+
+        const date =
+            new Date(dateString);
+
+
+        return date.toLocaleString();
+
+    }
+
+
+    function showAlert(
+        message,
+        type = "success"
+    ) {
+
+        const box =
+            document.getElementById(
+                "alertBox"
+            );
+
+
+        box.textContent =
+            message;
+
+
+        box.className =
+            "alert visible " +
+            (
+                type === "danger"
+                ? "alert-danger"
+                : "alert-success"
+            );
+
+
+        setTimeout(() => {
+
+            box.classList.remove(
+                "visible"
+            );
+
+        }, 4000);
+
+    }
+
+
+    function statusBadge(status) {
+
+        if (status === "UP") {
+
+            return `
+                <span class="status status-up">
+                    UP
+                </span>
+            `;
+
+        }
+
+
+        if (status === "DOWN") {
+
+            return `
+                <span class="status status-down">
+                    DOWN
+                </span>
+            `;
+
+        }
+
+
+        return `
+            <span class="status status-neutral">
+                ${escapeHtml(status)}
+            </span>
+        `;
+
+    }
+
+
+    // =========================================================
+    // LOAD DEVICES
+    // =========================================================
+
+    async function loadDevices() {
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_URL}/devices`
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Unable to load devices."
+                );
+
+            }
+
+
+            devices =
+                await response.json();
+
+
+            renderDevices();
+
+            updateOverview();
+
+
+        } catch (error) {
+
+            showAlert(
+                "Could not connect to backend.",
+                "danger"
+            );
+
+
+            console.error(error);
+
+        }
+
+    }
+
+
+    // =========================================================
+    // RENDER DEVICES
+    // =========================================================
+
+    function renderDevices() {
+
+        const tbody =
+            document.getElementById(
+                "deviceTableBody"
+            );
+
+
+        if (devices.length === 0) {
+
+            tbody.innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="6"
+                        class="empty-state"
+                    >
+                        No devices added yet.
+                    </td>
+
+                </tr>
+
+            `;
+
+            return;
+
+        }
+
+
+        tbody.innerHTML =
+            devices.map(device => {
+
+                const uptimeId =
+                    `uptime-${device.id}`;
+
+
+                loadUptime(
+                    device.id,
+                    uptimeId
+                );
+
+
+                return `
+
+                    <tr>
+
+                        <td>
+                            ${escapeHtml(
+                                device.name
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${escapeHtml(
+                                device.ip_address
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${statusBadge(
+                                device.status
+                            )}
+                        </td>
+
+
+                        <td>
+
+                            ${
+                                device.latency !== null
+                                ? device.latency + " ms"
+                                : "-"
+                            }
+
+                        </td>
+
+
+                        <td id="${uptimeId}">
+                            Loading...
+                        </td>
+
+
+                        <td>
+
+                            <div class="actions">
+
+                                <button
+                                    class="btn-secondary"
+                                    onclick="showDetails(${device.id})"
+                                >
+                                    Details
+                                </button>
+
+
+                                <button
+                                    class="btn-secondary"
+                                    onclick="showStatistics(${device.id})"
+                                >
+                                    Statistics
+                                </button>
+
+
+                                <button
+                                    class="btn-secondary"
+                                    onclick="showHistory(${device.id})"
+                                >
+                                    History
+                                </button>
+
+
+                                <button
+                                    class="btn-danger"
+                                    onclick="deleteDevice(${device.id})"
+                                >
+                                    Delete
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }).join("");
+
+    }
+
+
+    // =========================================================
+    // OVERVIEW
+    // =========================================================
+
+    function updateOverview() {
+
+        const total =
+            devices.length;
+
+
+        const up =
+            devices.filter(
+                d => d.status === "UP"
+            ).length;
+
+
+        const down =
+            devices.filter(
+                d => d.status === "DOWN"
+            ).length;
+
+
+        const latencyValues =
+            devices
+
+                .filter(
+                    d =>
+                        d.latency !== null &&
+                        d.latency !== undefined
+                )
+
+                .map(
+                    d => d.latency
+                );
+
+
+        const average =
+            latencyValues.length
+
+            ? latencyValues.reduce(
+                (a, b) => a + b,
+                0
+            ) / latencyValues.length
+
+            : 0;
+
+
+        document.getElementById(
+            "totalDevices"
+        ).textContent =
+            total;
+
+
+        document.getElementById(
+            "upDevices"
+        ).textContent =
+            up;
+
+
+        document.getElementById(
+            "downDevices"
+        ).textContent =
+            down;
+
+
+        document.getElementById(
+            "averageLatency"
+        ).textContent =
+            Math.round(average) + " ms";
+
+
+        if (down > 0) {
+
+            showAlert(
+                `${down} device(s) are currently DOWN.`,
+                "danger"
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // UPTIME
+    // =========================================================
+
+    async function loadUptime(
+        deviceId,
+        elementId
+    ) {
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_URL}/devices/${deviceId}/uptime`
+                );
+
+
+            const data =
+                await response.json();
+
+
+            document.getElementById(
+                elementId
+            ).textContent =
+                `${data.uptime_percentage}%`;
+
+
+        } catch (error) {
+
+            document.getElementById(
+                elementId
+            ).textContent =
+                "-";
+
+        }
+
+    }
+
+
+    // =========================================================
+    // ADD DEVICE
+    // =========================================================
+
+    async function addDevice() {
+
+        const name =
+            document.getElementById(
+                "deviceName"
+            ).value.trim();
+
+
+        const ip =
+            document.getElementById(
+                "deviceIP"
+            ).value.trim();
+
+
+        if (!name || !ip) {
+
+            showAlert(
+                "Please enter both device name and IP/hostname.",
+                "danger"
+            );
+
+            return;
+
+        }
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_URL}/devices`,
+                    {
+
+                        method: "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json"
+
+                        },
+
+                        body: JSON.stringify({
+
+                            name: name,
+
+                            ip_address: ip
+
+                        })
+
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.error ||
+                    "Unable to add device."
+                );
+
+            }
+
+
+            document.getElementById(
+                "deviceName"
+            ).value = "";
+
+
+            document.getElementById(
+                "deviceIP"
+            ).value = "";
+
+
+            showAlert(
+                "Device added successfully."
+            );
+
+
+            loadDevices();
+
+
+        } catch (error) {
+
+            showAlert(
+                error.message,
+                "danger"
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // DELETE DEVICE
+    // =========================================================
+
+    async function deleteDevice(
+        deviceId
+    ) {
+
+        const confirmed =
+            confirm(
+                "Are you sure you want to delete this device?"
+            );
+
+
+        if (!confirmed) {
+
+            return;
+
+        }
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_URL}/devices/${deviceId}`,
+                    {
+
+                        method: "DELETE"
+
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Unable to delete device."
+                );
+
+            }
+
+
+            showAlert(
+                "Device deleted successfully."
+            );
+
+
+            hideAllSections();
+
+
+            loadDevices();
+
+
+        } catch (error) {
+
+            showAlert(
+                error.message,
+                "danger"
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // DETAILS
+    // =========================================================
+
+    async function showDetails(
+        deviceId
+    ) {
+
+        hideAllSections();
+
+
+        const device =
+            devices.find(
+                d => d.id === deviceId
+            );
+
+
+        if (!device) {
+
+            return;
+
+        }
+
+
+        document.getElementById(
+            "detailsSection"
+        ).style.display =
+            "block";
+
+
+        document.getElementById(
+            "detailsDeviceName"
+        ).textContent =
+            device.name;
+
+
+        document.getElementById(
+            "detailIP"
+        ).textContent =
+            device.ip_address;
+
+
+        document.getElementById(
+            "detailStatus"
+        ).innerHTML =
+            statusBadge(
+                device.status
+            );
+
+
+        document.getElementById(
+            "detailLatency"
+        ).textContent =
+            device.latency !== null
+            ? `${device.latency} ms`
+            : "-";
+
+
+        try {
+
+            const uptimeResponse =
+                await fetch(
+                    `${API_URL}/devices/${deviceId}/uptime`
+                );
+
+
+            const uptime =
+                await uptimeResponse.json();
+
+
+            document.getElementById(
+                "detailUptime"
+            ).textContent =
+                `${uptime.uptime_percentage}%`;
+
+
+            document.getElementById(
+                "detailChecks"
+            ).textContent =
+                uptime.total_checks;
+
+
+        } catch (error) {
+
+            console.error(error);
+
+        }
+
+
+        try {
+
+            const statisticsResponse =
+                await fetch(
+                    `${API_URL}/devices/${deviceId}/statistics`
+                );
+
+
+            const statistics =
+                await statisticsResponse.json();
+
+
+            document.getElementById(
+                "detailAverageLatency"
+            ).textContent =
+                `${statistics.average_latency} ms`;
+
+
+            document.getElementById(
+                "detailOutages"
+            ).textContent =
+                statistics.outage_count;
+
+
+        } catch (error) {
+
+            console.error(error);
+
+        }
+
+    }
+
+
+    // =========================================================
+    // STATISTICS
+    // =========================================================
+
+    async function showStatistics(
+        deviceId
+    ) {
+
+        hideAllSections();
+
+
+        const device =
+            devices.find(
+                d => d.id === deviceId
+            );
+
+
+        if (!device) {
+
+            return;
+
+        }
+
+
+        document.getElementById(
+            "statisticsSection"
+        ).style.display =
+            "block";
+
+
+        document.getElementById(
+            "statisticsDeviceName"
+        ).textContent =
+            device.name;
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_URL}/devices/${deviceId}/statistics`
+                );
+
+
+            const data =
+                await response.json();
+
+
+            document.getElementById(
+                "statTotal"
+            ).textContent =
+                data.total_checks;
+
+
+            document.getElementById(
+                "statUp"
+            ).textContent =
+                data.up_checks;
+
+
+            document.getElementById(
+                "statDown"
+            ).textContent =
+                data.down_checks;
+
+
+            document.getElementById(
+                "statUptime"
+            ).textContent =
+                `${data.uptime_percentage}%`;
+
+
+            document.getElementById(
+                "statAverage"
+            ).textContent =
+                `${data.average_latency} ms`;
+
+
+            document.getElementById(
+                "statHighest"
+            ).textContent =
+                `${data.highest_latency} ms`;
+
+
+            document.getElementById(
+                "statLowest"
+            ).textContent =
+                `${data.lowest_latency} ms`;
+
+
+            document.getElementById(
+                "statOutages"
+            ).textContent =
+                data.outage_count;
+
+
+        } catch (error) {
+
+            showAlert(
+                "Unable to load statistics.",
+                "danger"
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // HISTORY
+    // =========================================================
+
+    async function showHistory(
+        deviceId
+    ) {
+
+        hideAllSections();
+
+
+        const device =
+            devices.find(
+                d => d.id === deviceId
+            );
+
+
+        if (!device) {
+
+            return;
+
+        }
+
+
+        document.getElementById(
+            "historySection"
+        ).style.display =
+            "block";
+
+
+        document.getElementById(
+            "historyDeviceName"
+        ).textContent =
+            device.name;
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_URL}/devices/${deviceId}/history`
+                );
+
+
+            const history =
+                await response.json();
+
+
+            const tbody =
+                document.getElementById(
+                    "historyTableBody"
+                );
+
+
+            if (
+                !Array.isArray(history) ||
+                history.length === 0
+            ) {
+
+                tbody.innerHTML = `
+
+                    <tr>
+
+                        <td
+                            colspan="3"
+                            class="empty-state"
+                        >
+                            No monitoring history yet.
+                        </td>
+
+                    </tr>
+
+                `;
+
+
+                return;
+
+            }
+
+
+            tbody.innerHTML =
+                history.map(row => {
+
+                    return `
+
+                        <tr>
+
+                            <td>
+                                ${statusBadge(
+                                    row.status
+                                )}
+                            </td>
+
+
+                            <td>
+
+                                ${
+                                    row.latency !== null &&
+                                    row.latency !== undefined
+
+                                    ? row.latency + " ms"
+
+                                    : "-"
+
+                                }
+
+                            </td>
+
+
+                            <td>
+                                ${formatDate(
+                                    row.checked_at
+                                )}
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }).join("");
+
+
+            // CREATE LATENCY GRAPH
+
+            createLatencyChart(
+                history,
+                device.name
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "History error:",
+                error
+            );
+
+
+            showAlert(
+                "Unable to load history.",
+                "danger"
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // LATENCY CHART
+    // =========================================================
+
+    function createLatencyChart(
+        history,
+        deviceName
+    ) {
+
+        const chartSection =
+            document.getElementById(
+                "chartSection"
+            );
+
+
+        const chartDeviceName =
+            document.getElementById(
+                "chartDeviceName"
+            );
+
+
+        chartSection.style.display =
+            "block";
+
+
+        chartDeviceName.textContent =
+            `${deviceName} - Recent latency measurements`;
+
+
+        /*
+         * Backend returns newest records first.
+         *
+         * Reverse them so the graph displays:
+         *
+         * oldest → newest
+         */
+
+        const validRecords =
+            history
+
+                .filter(record =>
+                    record.latency !== null &&
+                    record.latency !== undefined
+                )
+
+                .reverse();
+
+
+        // If there is no latency data
+
+        if (
+            validRecords.length === 0
+        ) {
+
+            if (latencyChart) {
+
+                latencyChart.destroy();
+
+                latencyChart = null;
+
+            }
+
+            return;
+
+        }
+
+
+        const labels =
+            validRecords.map(
+                (record, index) =>
+                    "#" + (index + 1)
+            );
+
+
+        const latencyValues =
+            validRecords.map(
+                record =>
+                    Number(record.latency)
+            );
+
+
+        const canvas =
+            document.getElementById(
+                "latencyChart"
+            );
+
+
+        // Destroy old chart
+
+        if (latencyChart) {
+
+            latencyChart.destroy();
+
+        }
+
+
+        // Create new chart
+
+        latencyChart =
+            new Chart(
+                canvas,
+                {
+
+                    type: "line",
+
+
+                    data: {
+
+                        labels: labels,
+
+
+                        datasets: [
+
+                            {
+
+                                label:
+                                    "Latency (ms)",
+
+
+                                data:
+                                    latencyValues,
+
+
+                                borderWidth:
+                                    2,
+
+
+                                tension:
+                                    0.3,
+
+
+                                fill:
+                                    false,
+
+
+                                pointRadius:
+                                    4
+
+                            }
+
+                        ]
+
+                    },
+
+
+                    options: {
+
+                        responsive:
+                            true,
+
+
+                        maintainAspectRatio:
+                            false,
+
+
+                        interaction: {
+
+                            intersect:
+                                false,
+
+                            mode:
+                                "index"
+
+                        },
+
+
+                        scales: {
+
+                            y: {
+
+                                beginAtZero:
+                                    true,
+
+
+                                title: {
+
+                                    display:
+                                        true,
+
+                                    text:
+                                        "Latency (ms)"
+
+                                }
+
+                            },
+
+
+                            x: {
+
+                                title: {
+
+                                    display:
+                                        true,
+
+                                    text:
+                                        "Monitoring Check"
+
+                                }
+
+                            }
+
+                        },
+
+
+                        plugins: {
+
+                            legend: {
+
+                                display:
+                                    true
+
+                            },
+
+
+                            tooltip: {
+
+                                callbacks: {
+
+                                    label:
+                                        function(context) {
+
+                                            return (
+                                                " Latency: " +
+                                                context.parsed.y +
+                                                " ms"
+                                            );
+
+                                        }
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+    }
+
+
+    // =========================================================
+    // HIDE SECTIONS
+    // =========================================================
+
+    function hideAllSections() {
+
+        document.getElementById(
+            "detailsSection"
+        ).style.display =
+            "none";
+
+
+        document.getElementById(
+            "statisticsSection"
+        ).style.display =
+            "none";
+
+
+        document.getElementById(
+            "historySection"
+        ).style.display =
+            "none";
+
+
+        document.getElementById(
+            "chartSection"
+        ).style.display =
+            "none";
+
+
+        if (latencyChart) {
+
+            latencyChart.destroy();
+
+            latencyChart = null;
+
+        }
+
+    }
+
+
+    // =========================================================
+    // TROUBLESHOOTER
+    // =========================================================
+
+    async function runTroubleshooter() {
+
+        const host =
+            document.getElementById(
+                "troubleshootHost"
+            ).value.trim();
+
+
+        if (!host) {
+
+            showAlert(
+                "Please enter an IP address or hostname.",
+                "danger"
+            );
+
+            return;
+
+        }
+
+
+        const resultBox =
+            document.getElementById(
+                "troubleshooterResult"
+            );
+
+
+        resultBox.classList.add(
+            "visible"
+        );
+
+
+        document.getElementById(
+            "diagnosticPingStatus"
+        ).textContent =
+            "Testing...";
+
+
+        document.getElementById(
+            "diagnosticPacketStatus"
+        ).textContent =
+            "Testing...";
+
+
+        document.getElementById(
+            "diagnosticDNSStatus"
+        ).textContent =
+            "Testing...";
+
+
+        document.getElementById(
+            "diagnosticTCPStatus"
+        ).textContent =
+            "Testing...";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_URL}/troubleshoot?host=${encodeURIComponent(host)}`
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.error ||
+                    "Diagnostic failed."
+                );
+
+            }
+
+
+            // =========================
+            // PING
+            // =========================
+
+            const ping =
+                data.ping;
+
+
+            const pingStatus =
+                document.getElementById(
+                    "diagnosticPingStatus"
+                );
+
+
+            const pingDetails =
+                document.getElementById(
+                    "diagnosticPingDetails"
+                );
+
+
+            if (ping.reachable) {
+
+                pingStatus.textContent =
+                    "✓ Reachable";
+
+
+                pingStatus.className =
+                    "diagnostic-status diagnostic-up";
+
+
+                pingDetails.innerHTML =
+                    `Latency: <strong>${ping.latency} ms</strong>`;
+
+            } else {
+
+                pingStatus.textContent =
+                    "✕ Unreachable";
+
+
+                pingStatus.className =
+                    "diagnostic-status diagnostic-down";
+
+
+                pingDetails.textContent =
+                    "Host did not respond to ping.";
+
+            }
+
+
+            // =========================
+            // PACKET LOSS
+            // =========================
+
+            const packet =
+                data.packet_loss;
+
+
+            const packetStatus =
+                document.getElementById(
+                    "diagnosticPacketStatus"
+                );
+
+
+            const packetDetails =
+                document.getElementById(
+                    "diagnosticPacketDetails"
+                );
+
+
+            if (
+                packet.success &&
+                packet.percentage === 0
+            ) {
+
+                packetStatus.textContent =
+                    "✓ 0%";
+
+
+                packetStatus.className =
+                    "diagnostic-status diagnostic-up";
+
+            }
+
+            else if (
+                packet.success &&
+                packet.percentage > 0 &&
+                packet.percentage < 100
+            ) {
+
+                packetStatus.textContent =
+                    `⚠ ${packet.percentage}%`;
+
+
+                packetStatus.className =
+                    "diagnostic-status diagnostic-warning";
+
+            }
+
+            else if (
+                packet.success &&
+                packet.percentage === 100
+            ) {
+
+                packetStatus.textContent =
+                    "✕ 100%";
+
+
+                packetStatus.className =
+                    "diagnostic-status diagnostic-down";
+
+            }
+
+            else {
+
+                packetStatus.textContent =
+                    "Unknown";
+
+
+                packetStatus.className =
+                    "diagnostic-status diagnostic-warning";
+
+            }
+
+
+            packetDetails.textContent =
+                packet.message;
+
+
+            // =========================
+            // DNS
+            // =========================
+
+            const dns =
+                data.dns;
+
+
+            const dnsStatus =
+                document.getElementById(
+                    "diagnosticDNSStatus"
+                );
+
+
+            const dnsDetails =
+                document.getElementById(
+                    "diagnosticDNSDetails"
+                );
+
+
+            if (dns.success) {
+
+                dnsStatus.textContent =
+                    "✓ Resolved";
+
+
+                dnsStatus.className =
+                    "diagnostic-status diagnostic-up";
+
+
+                dnsDetails.innerHTML =
+                    `IP Address: <strong>${escapeHtml(
+                        dns.ip_address
+                    )}</strong>`;
+
+            }
+
+            else {
+
+                dnsStatus.textContent =
+                    "✕ Failed";
+
+
+                dnsStatus.className =
+                    "diagnostic-status diagnostic-down";
+
+
+                dnsDetails.textContent =
+                    dns.message;
+
+            }
+
+
+            // =========================
+            // TCP
+            // =========================
+
+            const tcp =
+                data.tcp;
+
+
+            const tcpStatus =
+                document.getElementById(
+                    "diagnosticTCPStatus"
+                );
+
+
+            const tcpDetails =
+                document.getElementById(
+                    "diagnosticTCPDetails"
+                );
+
+
+            if (
+                tcp.success &&
+                tcp.status === "OPEN"
+            ) {
+
+                tcpStatus.textContent =
+                    "✓ OPEN";
+
+
+                tcpStatus.className =
+                    "diagnostic-status diagnostic-up";
+
+            }
+
+            else if (
+                tcp.success &&
+                tcp.status === "CLOSED/FILTERED"
+            ) {
+
+                tcpStatus.textContent =
+                    "⚠ CLOSED/FILTERED";
+
+
+                tcpStatus.className =
+                    "diagnostic-status diagnostic-warning";
+
+            }
+
+            else {
+
+                tcpStatus.textContent =
+                    "✕ ERROR";
+
+
+                tcpStatus.className =
+                    "diagnostic-status diagnostic-down";
+
+            }
+
+
+            tcpDetails.textContent =
+                tcp.message;
+
+
+            // =========================
+            // OVERALL
+            // =========================
+
+            const overall =
+                document.getElementById(
+                    "diagnosticOverall"
+                );
+
+
+            if (ping.reachable) {
+
+                overall.innerHTML = `
+
+                    <span class="diagnostic-up">
+
+                        ✓ ${escapeHtml(
+                            data.message
+                        )}
+
+                    </span>
+
+                `;
+
+            }
+
+            else {
+
+                overall.innerHTML = `
+
+                    <span class="diagnostic-down">
+
+                        ✕ ${escapeHtml(
+                            data.message
+                        )}
+
+                    </span>
+
+                `;
+
+            }
+
+
+        } catch (error) {
+
+            showAlert(
+                error.message,
+                "danger"
+            );
+
+
+            document.getElementById(
+                "diagnosticPingStatus"
+            ).textContent =
+                "Error";
+
+
+            document.getElementById(
+                "diagnosticPacketStatus"
+            ).textContent =
+                "Error";
+
+
+            document.getElementById(
+                "diagnosticDNSStatus"
+            ).textContent =
+                "Error";
+
+
+            document.getElementById(
+                "diagnosticTCPStatus"
+            ).textContent =
+                "Error";
+
+        }
+
+    }
+
+
+    // =========================================================
+    // ENTER KEY FOR TROUBLESHOOTER
+    // =========================================================
+
+    document
+        .getElementById(
+            "troubleshootHost"
+        )
+        .addEventListener(
+            "keydown",
+            function(event) {
+
+                if (event.key === "Enter") {
+
+                    runTroubleshooter();
+
+                }
+
+            }
+        );
+
+
+    // =========================================================
+    // INITIAL LOAD
+    // =========================================================
+
+    loadDevices();
+
+
+    // =========================================================
+    // AUTO REFRESH
+    // =========================================================
+
+    setInterval(
+        loadDevices,
+        30000
+    );
+
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Network Monitoring Dashboard</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #1f2937;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 22px 30px;
+        }
+
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        header p {
+            color: #d1d5db;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 25px auto;
+            padding: 0 20px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 22px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+
+        .section h2 {
+            margin-bottom: 8px;
+            font-size: 21px;
+        }
+
+        .section-description {
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        /* =========================
+           OVERVIEW CARDS
+        ========================= */
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+
+        .card-title {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .card-value {
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        /* =========================
+           FORM
+        ========================= */
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 12px;
+        }
+
+        input {
+            width: 100%;
+            padding: 11px 13px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        button {
+            border: none;
+            border-radius: 7px;
+            padding: 11px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-success {
+            background: #16a34a;
+            color: white;
+        }
+
+        /* =========================
+           TABLE
+        ========================= */
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 13px 10px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f9fafb;
+            font-weight: 600;
+        }
+
+        /* =========================
+           STATUS
+        ========================= */
+
+        .status {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-up {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-down {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-neutral {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        /* =========================
+           ACTIONS
+        ========================= */
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        .actions button {
+            padding: 7px 10px;
+            font-size: 12px;
+        }
+
+        /* =========================
+           DETAILS
+        ========================= */
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .detail-box {
+            background: #f9fafb;
+            padding: 17px;
+            border-radius: 9px;
+        }
+
+        .detail-label {
+            color: #6b7280;
+            font-size: 12px;
+            margin-bottom: 7px;
+        }
+
+        .detail-value {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        /* =========================
+           STATISTICS
+        ========================= */
+
+        .statistics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .stat-box {
+            background: #f9fafb;
+            border-radius: 9px;
+            padding: 18px;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 13px;
+            margin-bottom: 7px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* =========================
+           CHART
+        ========================= */
+
+        .chart-container {
+            position: relative;
+            height: 330px;
+            width: 100%;
+        }
+
+        /* =========================
+           TROUBLESHOOTER
+        ========================= */
+
+        .troubleshooter-form {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .troubleshooter-result {
+            display: none;
+        }
+
+        .troubleshooter-result.visible {
+            display: block;
+        }
+
+        .diagnostic-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 18px;
+        }
+
+        .diagnostic-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 18px;
+            background: #ffffff;
+        }
+
+        .diagnostic-title {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 9px;
+        }
+
+        .diagnostic-status {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .diagnostic-detail {
+            color: #4b5563;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .diagnostic-up {
+            color: #15803d;
+        }
+
+        .diagnostic-down {
+            color: #dc2626;
+        }
+
+        .diagnostic-warning {
+            color: #ca8a04;
+        }
+
+        .overall-result {
+            margin-top: 18px;
+            padding: 16px;
+            border-radius: 9px;
+            background: #f9fafb;
+        }
+
+        .overall-result strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* =========================
+           ALERT
+        ========================= */
+
+        .alert {
+            display: none;
+            padding: 13px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert.visible {
+            display: block;
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        /* =========================
+           EMPTY
+        ========================= */
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #6b7280;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 1000px) {
+
+            .cards,
+            .details-grid,
+            .statistics-grid,
+            .diagnostic-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+        }
+
+        @media (max-width: 700px) {
+
+            .cards,
+            .details-grid,
+            .statistics-grid,
+            .diagnostic-grid,
+            .form-row,
+            .troubleshooter-form {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 23px;
+            }
+
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+<header>
+
+    <h1>Network Monitoring Dashboard</h1>
+
+    <p>
+        Monitor network devices, latency, uptime and troubleshoot connectivity.
+    </p>
+
+</header>
+
+
+<div class="container">
+
+
+    <!-- ALERT -->
+
+    <div id="alertBox" class="alert"></div>
+
+
+    <!-- =========================
+         OVERVIEW
+    ========================= -->
+
+    <div class="cards">
+
+        <div class="card">
+
+            <div class="card-title">
+                Total Devices
+            </div>
+
+            <div
+                id="totalDevices"
+                class="card-value"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Devices UP
+            </div>
+
+            <div
+                id="upDevices"
+                class="card-value"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Devices DOWN
+            </div>
+
+            <div
+                id="downDevices"
+                class="card-value"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Average Latency
+            </div>
+
+            <div
+                id="averageLatency"
+                class="card-value"
+            >
+                0 ms
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         ADD DEVICE
+    ========================= -->
+
+    <div class="section">
+
+        <h2>Add Network Device</h2>
+
+        <p class="section-description">
+            Add a device or host that you want to monitor.
+        </p>
+
+
+        <div class="form-row">
+
+            <input
+                id="deviceName"
+                type="text"
+                placeholder="Device name"
+            >
+
+
+            <input
+                id="deviceIP"
+                type="text"
+                placeholder="IP address or hostname"
+            >
+
+
+            <button
+                class="btn-primary"
+                onclick="addDevice()"
+            >
+                Add Device
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         DEVICES
+    ========================= -->
+
+    <div class="section">
+
+        <h2>Network Devices</h2>
+
+        <p class="section-description">
+            Current monitoring status of configured devices.
+        </p>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Name</th>
+
+                        <th>IP / Host</th>
+
+                        <th>Status</th>
+
+                        <th>Latency</th>
+
+                        <th>Uptime</th>
+
+                        <th>Actions</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="deviceTableBody"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         DEVICE DETAILS
+    ========================= -->
+
+    <div
+        id="detailsSection"
+        class="section"
+        style="display:none;"
+    >
+
+        <h2>Device Details</h2>
+
+        <p
+            id="detailsDeviceName"
+            class="section-description"
+        ></p>
+
+
+        <div class="details-grid">
+
+            <div class="detail-box">
+
+                <div class="detail-label">
+                    IP Address
+                </div>
+
+                <div
+                    id="detailIP"
+                    class="detail-value"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="detail-box">
+
+                <div class="detail-label">
+                    Current Status
+                </div>
+
+                <div
+                    id="detailStatus"
+                    class="detail-value"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="detail-box">
+
+                <div class="detail-label">
+                    Latency
+                </div>
+
+                <div
+                    id="detailLatency"
+                    class="detail-value"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="detail-box">
+
+                <div class="detail-label">
+                    Uptime
+                </div>
+
+                <div
+                    id="detailUptime"
+                    class="detail-value"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="detail-box">
+
+                <div class="detail-label">
+                    Total Checks
+                </div>
+
+                <div
+                    id="detailChecks"
+                    class="detail-value"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="detail-box">
+
+                <div class="detail-label">
+                    Average Latency
+                </div>
+
+                <div
+                    id="detailAverageLatency"
+                    class="detail-value"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="detail-box">
+
+                <div class="detail-label">
+                    Outage Events
+                </div>
+
+                <div
+                    id="detailOutages"
+                    class="detail-value"
+                >
+                    -
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         STATISTICS
+    ========================= -->
+
+    <div
+        id="statisticsSection"
+        class="section"
+        style="display:none;"
+    >
+
+        <h2>Device Statistics</h2>
+
+        <p
+            id="statisticsDeviceName"
+            class="section-description"
+        ></p>
+
+
+        <div class="statistics-grid">
+
+            <div class="stat-box">
+
+                <div class="stat-label">
+                    Total Checks
+                </div>
+
+                <div
+                    id="statTotal"
+                    class="stat-value"
+                >
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="stat-box">
+
+                <div class="stat-label">
+                    Successful Checks
+                </div>
+
+                <div
+                    id="statUp"
+                    class="stat-value"
+                >
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="stat-box">
+
+                <div class="stat-label">
+                    Failed Checks
+                </div>
+
+                <div
+                    id="statDown"
+                    class="stat-value"
+                >
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="stat-box">
+
+                <div class="stat-label">
+                    Uptime
+                </div>
+
+                <div
+                    id="statUptime"
+                    class="stat-value"
+                >
+                    0%
+                </div>
+
+            </div>
+
+
+            <div class="stat-box">
+
+                <div class="stat-label">
+                    Average Latency
+                </div>
+
+                <div
+                    id="statAverage"
+                    class="stat-value"
+                >
+                    0 ms
+                </div>
+
+            </div>
+
+
+            <div class="stat-box">
+
+                <div class="stat-label">
+                    Highest Latency
+                </div>
+
+                <div
+                    id="statHighest"
+                    class="stat-value"
+                >
+                    0 ms
+                </div>
+
+            </div>
+
+
+            <div class="stat-box">
+
+                <div class="stat-label">
+                    Lowest Latency
+                </div>
+
+                <div
+                    id="statLowest"
+                    class="stat-value"
+                >
+                    0 ms
+                </div>
+
+            </div>
+
+
+            <div class="stat-box">
+
+                <div class="stat-label">
+                    Outage Events
+                </div>
+
+                <div
+                    id="statOutages"
+                    class="stat-value"
+                >
+                    0
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         LATENCY HISTORY / GRAPH
+    ========================= -->
+
+    <div
+        id="chartSection"
+        class="section"
+        style="display:none;"
+    >
+
+        <h2>Latency History</h2>
+
+        <p
+            id="chartDeviceName"
+            class="section-description"
+        ></p>
+
+
+        <div class="chart-container">
+
+            <canvas id="latencyChart"></canvas>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         HISTORY
+    ========================= -->
+
+    <div
+        id="historySection"
+        class="section"
+        style="display:none;"
+    >
+
+        <h2>Monitoring History</h2>
+
+        <p
+            id="historyDeviceName"
+            class="section-description"
+        ></p>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Status</th>
+
+                        <th>Latency</th>
+
+                        <th>Checked At</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="historyTableBody"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         NETWORK TROUBLESHOOTER
+    ========================= -->
+
+    <div class="section">
+
+        <h2>Network Troubleshooter</h2>
+
+        <p class="section-description">
+            Test reachability, packet loss, DNS resolution and TCP connectivity.
+        </p>
+
+
+        <div class="troubleshooter-form">
+
+            <input
+                id="troubleshootHost"
+                type="text"
+                placeholder="Enter IP address or hostname (example: google.com)"
+            >
+
+
+            <button
+                class="btn-primary"
+                onclick="runTroubleshooter()"
+            >
+                Run Diagnostic
+            </button>
+
+        </div>
+
+
+        <div
+            id="troubleshooterResult"
+            class="troubleshooter-result"
+        >
+
+            <h3>
+                Diagnostic Results
+            </h3>
+
+
+            <div class="diagnostic-grid">
+
+
+                <!-- PING -->
+
+                <div class="diagnostic-card">
+
+                    <div class="diagnostic-title">
+                        Ping / Reachability
+                    </div>
+
+                    <div
+                        id="diagnosticPingStatus"
+                        class="diagnostic-status"
+                    >
+                        -
+                    </div>
+
+                    <div
+                        id="diagnosticPingDetails"
+                        class="diagnostic-detail"
+                    >
+                        -
+                    </div>
+
+                </div>
+
+
+                <!-- PACKET LOSS -->
+
+                <div class="diagnostic-card">
+
+                    <div class="diagnostic-title">
+                        Packet Loss
+                    </div>
+
+                    <div
+                        id="diagnosticPacketStatus"
+                        class="diagnostic-status"
+                    >
+                        -
+                    </div>
+
+                    <div
+                        id="diagnosticPacketDetails"
+                        class="diagnostic-detail"
+                    >
+                        -
+                    </div>
+
+                </div>
+
+
+                <!-- DNS -->
+
+                <div class="diagnostic-card">
+
+                    <div class="diagnostic-title">
+                        DNS Resolution
+                    </div>
+
+                    <div
+                        id="diagnosticDNSStatus"
+                        class="diagnostic-status"
+                    >
+                        -
+                    </div>
+
+                    <div
+                        id="diagnosticDNSDetails"
+                        class="diagnostic-detail"
+                    >
+                        -
+                    </div>
+
+                </div>
+
+
+                <!-- TCP -->
+
+                <div class="diagnostic-card">
+
+                    <div class="diagnostic-title">
+                        TCP Port 443
+                    </div>
+
+                    <div
+                        id="diagnosticTCPStatus"
+                        class="diagnostic-status"
+                    >
+                        -
+                    </div>
+
+                    <div
+                        id="diagnosticTCPDetails"
+                        class="diagnostic-detail"
+                    >
+                        -
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="overall-result">
+
+                <strong>
+                    Overall Result
+                </strong>
+
+                <span id="diagnosticOverall">
+                    -
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    // =========================================================
+    // CONFIGURATION
+    // =========================================================
+
+    const API_URL =
+        "http://127.0.0.1:5000/api";
+
+
+    let devices = [];
+
+    let latencyChart = null;
+
+
+    // =========================================================
+    // HELPERS
+    // =========================================================
+
+    function escapeHtml(value) {
+
+        return String(value)
+
+            .replace(/&/g, "&amp;")
+
+            .replace(/</g, "&lt;")
+
+            .replace(/>/g, "&gt;")
+
+            .replace(/"/g, "&quot;")
+
+            .replace(/'/g, "&#039;");
+
+    }
+
+
+    function escapeJs(value) {
+
+        return String(value)
+
+            .replace(/\\/g, "\\\\")
+
+            .replace(/'/g, "\\'")
+
+            .replace(/\n/g, "\\n")
+
+            .replace(/\r/g, "\\r");
+
+    }
+
+
+    function formatDate(dateString) {
+
+        if (!dateString) {
+
+            return "-";
+
+        }
+
+
+        const date =
+            new Date(dateString);
+
+
+        return date.toLocaleString();
+
+    }
+
+
+    function showAlert(
+        message,
+        type = "success"
+    ) {
+
+        const box =
+            document.getElementById(
+                "alertBox"
+            );
+
+
+        box.textContent =
+            message;
+
+
+        box.className =
+            "alert visible " +
+            (
+                type === "danger"
+                ? "alert-danger"
+                : "alert-success"
+            );
+
+
+        setTimeout(() => {
+
+            box.classList.remove(
+                "visible"
+            );
+
+        }, 4000);
+
+    }
+
+
+    function statusBadge(status) {
+
+        if (status === "UP") {
+
+            return `
+                <span class="status status-up">
+                    UP
+                </span>
+            `;
+
+        }
+
+
+        if (status === "DOWN") {
+
+            return `
+                <span class="status status-down">
+                    DOWN
+                </span>
+            `;
+
+        }
+
+
+        return `
+            <span class="status status-neutral">
+                ${escapeHtml(status)}
+            </span>
+        `;
+
+    }
+
+
+    // =========================================================
+    // LOAD DEVICES
+    // =========================================================
+
+    async function loadDevices() {
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_URL}/devices`
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Unable to load devices."
+                );
+
+            }
+
+
+            devices =
+                await response.json();
+
+
+            renderDevices();
+
+            updateOverview();
+
+
+        } catch (error) {
+
+            showAlert(
+                "Could not connect to backend.",
+                "danger"
+            );
+
+
+            console.error(error);
+
+        }
+
+    }
+
+
+    // =========================================================
+    // RENDER DEVICES
+    // =========================================================
+
+    function renderDevices() {
+
+        const tbody =
+            document.getElementById(
+                "deviceTableBody"
+            );
+
+
+        if (devices.length === 0) {
+
+            tbody.innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="6"
+                        class="empty-state"
+                    >
+                        No devices added yet.
+                    </td>
+
+                </tr>
+
+            `;
+
+            return;
+
+        }
+
+
+        tbody.innerHTML =
+            devices.map(device => {
+
+                const uptimeId =
+                    `uptime-${device.id}`;
+
+
+                loadUptime(
+                    device.id,
+                    uptimeId
+                );
+
+
+                return `
+
+                    <tr>
+
+                        <td>
+                            ${escapeHtml(
+                                device.name
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${escapeHtml(
+                                device.ip_address
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${statusBadge(
+                                device.status
+                            )}
+                        </td>
+
+
+                        <td>
+
+                            ${
+                                device.latency !== null
+                                ? device.latency + " ms"
+                                : "-"
+                            }
+
+                        </td>
+
+
+                        <td id="${uptimeId}">
+                            Loading...
+                        </td>
+
+
+                        <td>
+
+                            <div class="actions">
+
+                                <button
+                                    class="btn-secondary"
+                                    onclick="showDetails(${device.id})"
+                                >
+                                    Details
+                                </button>
+
+
+                                <button
+                                    class="btn-secondary"
+                                    onclick="showStatistics(${device.id})"
+                                >
+                                    Statistics
+                                </button>
+
+
+                                <button
+                                    class="btn-secondary"
+                                    onclick="showHistory(${device.id})"
+                                >
+                                    History
+                                </button>
+
+
+                                <button
+                                    class="btn-danger"
+                                    onclick="deleteDevice(${device.id})"
+                                >
+                                    Delete
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }).join("");
+
+    }
+
+
+    // =========================================================
+    // OVERVIEW
+    // =========================================================
+
+    function updateOverview() {
+
+        const total =
+            devices.length;
+
+
+        const up =
+            devices.filter(
+                d => d.status === "UP"
+            ).length;
+
+
+        const down =
+            devices.filter(
+                d => d.status === "DOWN"
+            ).length;
+
+
+        const latencyValues =
+            devices
+
+                .filter(
+                    d =>
+                        d.latency !== null &&
+                        d.latency !== undefined
+                )
+
+                .map(
+                    d => d.latency
+                );
+
+
+        const average =
+            latencyValues.length
+
+            ? latencyValues.reduce(
+                (a, b) => a + b,
+                0
+            ) / latencyValues.length
+
+            : 0;
+
+
+        document.getElementById(
+            "totalDevices"
+        ).textContent =
+            total;
+
+
+        document.getElementById(
+            "upDevices"
+        ).textContent =
+            up;
+
+
+        document.getElementById(
+            "downDevices"
+        ).textContent =
+            down;
+
+
+        document.getElementById(
+            "averageLatency"
+        ).textContent =
+            Math.round(average) + " ms";
+
+
+        if (down > 0) {
+
+            showAlert(
+                `${down} device(s) are currently DOWN.`,
+                "danger"
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // UPTIME
+    // =========================================================
+
+    async function loadUptime(
+        deviceId,
+        elementId
+    ) {
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_URL}/devices/${deviceId}/uptime`
+                );
+
+
+            const data =
+                await response.json();
+
+
+            document.getElementById(
+                elementId
+            ).textContent =
+                `${data.uptime_percentage}%`;
+
+
+        } catch (error) {
+
+            document.getElementById(
+                elementId
+            ).textContent =
+                "-";
+
+        }
+
+    }
+
+
+    // =========================================================
+    // ADD DEVICE
+    // =========================================================
+
+    async function addDevice() {
+
+        const name =
+            document.getElementById(
+                "deviceName"
+            ).value.trim();
+
+
+        const ip =
+            document.getElementById(
+                "deviceIP"
+            ).value.trim();
+
+
+        if (!name || !ip) {
+
+            showAlert(
+                "Please enter both device name and IP/hostname.",
+                "danger"
+            );
+
+            return;
+
+        }
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_URL}/devices`,
+                    {
+
+                        method: "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json"
+
+                        },
+
+                        body: JSON.stringify({
+
+                            name: name,
+
+                            ip_address: ip
+
+                        })
+
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.error ||
+                    "Unable to add device."
+                );
+
+            }
+
+
+            document.getElementById(
+                "deviceName"
+            ).value = "";
+
+
+            document.getElementById(
+                "deviceIP"
+            ).value = "";
+
+
+            showAlert(
+                "Device added successfully."
+            );
+
+
+            loadDevices();
+
+
+        } catch (error) {
+
+            showAlert(
+                error.message,
+                "danger"
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // DELETE DEVICE
+    // =========================================================
+
+    async function deleteDevice(
+        deviceId
+    ) {
+
+        const confirmed =
+            confirm(
+                "Are you sure you want to delete this device?"
+            );
+
+
+        if (!confirmed) {
+
+            return;
+
+        }
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_URL}/devices/${deviceId}`,
+                    {
+
+                        method: "DELETE"
+
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Unable to delete device."
+                );
+
+            }
+
+
+            showAlert(
+                "Device deleted successfully."
+            );
+
+
+            hideAllSections();
+
+
+            loadDevices();
+
+
+        } catch (error) {
+
+            showAlert(
+                error.message,
+                "danger"
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // DETAILS
+    // =========================================================
+
+    async function showDetails(
+        deviceId
+    ) {
+
+        hideAllSections();
+
+
+        const device =
+            devices.find(
+                d => d.id === deviceId
+            );
+
+
+        if (!device) {
+
+            return;
+
+        }
+
+
+        document.getElementById(
+            "detailsSection"
+        ).style.display =
+            "block";
+
+
+        document.getElementById(
+            "detailsDeviceName"
+        ).textContent =
+            device.name;
+
+
+        document.getElementById(
+            "detailIP"
+        ).textContent =
+            device.ip_address;
+
+
+        document.getElementById(
+            "detailStatus"
+        ).innerHTML =
+            statusBadge(
+                device.status
+            );
+
+
+        document.getElementById(
+            "detailLatency"
+        ).textContent =
+            device.latency !== null
+            ? `${device.latency} ms`
+            : "-";
+
+
+        try {
+
+            const uptimeResponse =
+                await fetch(
+                    `${API_URL}/devices/${deviceId}/uptime`
+                );
+
+
+            const uptime =
+                await uptimeResponse.json();
+
+
+            document.getElementById(
+                "detailUptime"
+            ).textContent =
+                `${uptime.uptime_percentage}%`;
+
+
+            document.getElementById(
+                "detailChecks"
+            ).textContent =
+                uptime.total_checks;
+
+
+        } catch (error) {
+
+            console.error(error);
+
+        }
+
+
+        try {
+
+            const statisticsResponse =
+                await fetch(
+                    `${API_URL}/devices/${deviceId}/statistics`
+                );
+
+
+            const statistics =
+                await statisticsResponse.json();
+
+
+            document.getElementById(
+                "detailAverageLatency"
+            ).textContent =
+                `${statistics.average_latency} ms`;
+
+
+            document.getElementById(
+                "detailOutages"
+            ).textContent =
+                statistics.outage_count;
+
+
+        } catch (error) {
+
+            console.error(error);
+
+        }
+
+    }
+
+
+    // =========================================================
+    // STATISTICS
+    // =========================================================
+
+    async function showStatistics(
+        deviceId
+    ) {
+
+        hideAllSections();
+
+
+        const device =
+            devices.find(
+                d => d.id === deviceId
+            );
+
+
+        if (!device) {
+
+            return;
+
+        }
+
+
+        document.getElementById(
+            "statisticsSection"
+        ).style.display =
+            "block";
+
+
+        document.getElementById(
+            "statisticsDeviceName"
+        ).textContent =
+            device.name;
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_URL}/devices/${deviceId}/statistics`
+                );
+
+
+            const data =
+                await response.json();
+
+
+            document.getElementById(
+                "statTotal"
+            ).textContent =
+                data.total_checks;
+
+
+            document.getElementById(
+                "statUp"
+            ).textContent =
+                data.up_checks;
+
+
+            document.getElementById(
+                "statDown"
+            ).textContent =
+                data.down_checks;
+
+
+            document.getElementById(
+                "statUptime"
+            ).textContent =
+                `${data.uptime_percentage}%`;
+
+
+            document.getElementById(
+                "statAverage"
+            ).textContent =
+                `${data.average_latency} ms`;
+
+
+            document.getElementById(
+                "statHighest"
+            ).textContent =
+                `${data.highest_latency} ms`;
+
+
+            document.getElementById(
+                "statLowest"
+            ).textContent =
+                `${data.lowest_latency} ms`;
+
+
+            document.getElementById(
+                "statOutages"
+            ).textContent =
+                data.outage_count;
+
+
+        } catch (error) {
+
+            showAlert(
+                "Unable to load statistics.",
+                "danger"
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // HISTORY
+    // =========================================================
+
+    async function showHistory(
+        deviceId
+    ) {
+
+        hideAllSections();
+
+
+        const device =
+            devices.find(
+                d => d.id === deviceId
+            );
+
+
+        if (!device) {
+
+            return;
+
+        }
+
+
+        document.getElementById(
+            "historySection"
+        ).style.display =
+            "block";
+
+
+        document.getElementById(
+            "historyDeviceName"
+        ).textContent =
+            device.name;
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_URL}/devices/${deviceId}/history`
+                );
+
+
+            const history =
+                await response.json();
+
+
+            const tbody =
+                document.getElementById(
+                    "historyTableBody"
+                );
+
+
+            if (
+                !Array.isArray(history) ||
+                history.length === 0
+            ) {
+
+                tbody.innerHTML = `
+
+                    <tr>
+
+                        <td
+                            colspan="3"
+                            class="empty-state"
+                        >
+                            No monitoring history yet.
+                        </td>
+
+                    </tr>
+
+                `;
+
+
+                return;
+
+            }
+
+
+            tbody.innerHTML =
+                history.map(row => {
+
+                    return `
+
+                        <tr>
+
+                            <td>
+                                ${statusBadge(
+                                    row.status
+                                )}
+                            </td>
+
+
+                            <td>
+
+                                ${
+                                    row.latency !== null &&
+                                    row.latency !== undefined
+
+                                    ? row.latency + " ms"
+
+                                    : "-"
+
+                                }
+
+                            </td>
+
+
+                            <td>
+                                ${formatDate(
+                                    row.checked_at
+                                )}
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }).join("");
+
+
+            // CREATE LATENCY GRAPH
+
+            createLatencyChart(
+                history,
+                device.name
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "History error:",
+                error
+            );
+
+
+            showAlert(
+                "Unable to load history.",
+                "danger"
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // LATENCY CHART
+    // =========================================================
+
+    function createLatencyChart(
+        history,
+        deviceName
+    ) {
+
+        const chartSection =
+            document.getElementById(
+                "chartSection"
+            );
+
+
+        const chartDeviceName =
+            document.getElementById(
+                "chartDeviceName"
+            );
+
+
+        chartSection.style.display =
+            "block";
+
+
+        chartDeviceName.textContent =
+            `${deviceName} - Recent latency measurements`;
+
+
+        /*
+         * Backend returns newest records first.
+         *
+         * Reverse them so the graph displays:
+         *
+         * oldest → newest
+         */
+
+        const validRecords =
+            history
+
+                .filter(record =>
+                    record.latency !== null &&
+                    record.latency !== undefined
+                )
+
+                .reverse();
+
+
+        // If there is no latency data
+
+        if (
+            validRecords.length === 0
+        ) {
+
+            if (latencyChart) {
+
+                latencyChart.destroy();
+
+                latencyChart = null;
+
+            }
+
+            return;
+
+        }
+
+
+        const labels =
+            validRecords.map(
+                (record, index) =>
+                    "#" + (index + 1)
+            );
+
+
+        const latencyValues =
+            validRecords.map(
+                record =>
+                    Number(record.latency)
+            );
+
+
+        const canvas =
+            document.getElementById(
+                "latencyChart"
+            );
+
+
+        // Destroy old chart
+
+        if (latencyChart) {
+
+            latencyChart.destroy();
+
+        }
+
+
+        // Create new chart
+
+        latencyChart =
+            new Chart(
+                canvas,
+                {
+
+                    type: "line",
+
+
+                    data: {
+
+                        labels: labels,
+
+
+                        datasets: [
+
+                            {
+
+                                label:
+                                    "Latency (ms)",
+
+
+                                data:
+                                    latencyValues,
+
+
+                                borderWidth:
+                                    2,
+
+
+                                tension:
+                                    0.3,
+
+
+                                fill:
+                                    false,
+
+
+                                pointRadius:
+                                    4
+
+                            }
+
+                        ]
+
+                    },
+
+
+                    options: {
+
+                        responsive:
+                            true,
+
+
+                        maintainAspectRatio:
+                            false,
+
+
+                        interaction: {
+
+                            intersect:
+                                false,
+
+                            mode:
+                                "index"
+
+                        },
+
+
+                        scales: {
+
+                            y: {
+
+                                beginAtZero:
+                                    true,
+
+
+                                title: {
+
+                                    display:
+                                        true,
+
+                                    text:
+                                        "Latency (ms)"
+
+                                }
+
+                            },
+
+
+                            x: {
+
+                                title: {
+
+                                    display:
+                                        true,
+
+                                    text:
+                                        "Monitoring Check"
+
+                                }
+
+                            }
+
+                        },
+
+
+                        plugins: {
+
+                            legend: {
+
+                                display:
+                                    true
+
+                            },
+
+
+                            tooltip: {
+
+                                callbacks: {
+
+                                    label:
+                                        function(context) {
+
+                                            return (
+                                                " Latency: " +
+                                                context.parsed.y +
+                                                " ms"
+                                            );
+
+                                        }
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+    }
+
+
+    // =========================================================
+    // HIDE SECTIONS
+    // =========================================================
+
+    function hideAllSections() {
+
+        document.getElementById(
+            "detailsSection"
+        ).style.display =
+            "none";
+
+
+        document.getElementById(
+            "statisticsSection"
+        ).style.display =
+            "none";
+
+
+        document.getElementById(
+            "historySection"
+        ).style.display =
+            "none";
+
+
+        document.getElementById(
+            "chartSection"
+        ).style.display =
+            "none";
+
+
+        if (latencyChart) {
+
+            latencyChart.destroy();
+
+            latencyChart = null;
+
+        }
+
+    }
+
+
+    // =========================================================
+    // TROUBLESHOOTER
+    // =========================================================
+
+    async function runTroubleshooter() {
+
+        const host =
+            document.getElementById(
+                "troubleshootHost"
+            ).value.trim();
+
+
+        if (!host) {
+
+            showAlert(
+                "Please enter an IP address or hostname.",
+                "danger"
+            );
+
+            return;
+
+        }
+
+
+        const resultBox =
+            document.getElementById(
+                "troubleshooterResult"
+            );
+
+
+        resultBox.classList.add(
+            "visible"
+        );
+
+
+        document.getElementById(
+            "diagnosticPingStatus"
+        ).textContent =
+            "Testing...";
+
+
+        document.getElementById(
+            "diagnosticPacketStatus"
+        ).textContent =
+            "Testing...";
+
+
+        document.getElementById(
+            "diagnosticDNSStatus"
+        ).textContent =
+            "Testing...";
+
+
+        document.getElementById(
+            "diagnosticTCPStatus"
+        ).textContent =
+            "Testing...";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_URL}/troubleshoot?host=${encodeURIComponent(host)}`
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.error ||
+                    "Diagnostic failed."
+                );
+
+            }
+
+
+            // =========================
+            // PING
+            // =========================
+
+            const ping =
+                data.ping;
+
+
+            const pingStatus =
+                document.getElementById(
+                    "diagnosticPingStatus"
+                );
+
+
+            const pingDetails =
+                document.getElementById(
+                    "diagnosticPingDetails"
+                );
+
+
+            if (ping.reachable) {
+
+                pingStatus.textContent =
+                    "✓ Reachable";
+
+
+                pingStatus.className =
+                    "diagnostic-status diagnostic-up";
+
+
+                pingDetails.innerHTML =
+                    `Latency: <strong>${ping.latency} ms</strong>`;
+
+            } else {
+
+                pingStatus.textContent =
+                    "✕ Unreachable";
+
+
+                pingStatus.className =
+                    "diagnostic-status diagnostic-down";
+
+
+                pingDetails.textContent =
+                    "Host did not respond to ping.";
+
+            }
+
+
+            // =========================
+            // PACKET LOSS
+            // =========================
+
+            const packet =
+                data.packet_loss;
+
+
+            const packetStatus =
+                document.getElementById(
+                    "diagnosticPacketStatus"
+                );
+
+
+            const packetDetails =
+                document.getElementById(
+                    "diagnosticPacketDetails"
+                );
+
+
+            if (
+                packet.success &&
+                packet.percentage === 0
+            ) {
+
+                packetStatus.textContent =
+                    "✓ 0%";
+
+
+                packetStatus.className =
+                    "diagnostic-status diagnostic-up";
+
+            }
+
+            else if (
+                packet.success &&
+                packet.percentage > 0 &&
+                packet.percentage < 100
+            ) {
+
+                packetStatus.textContent =
+                    `⚠ ${packet.percentage}%`;
+
+
+                packetStatus.className =
+                    "diagnostic-status diagnostic-warning";
+
+            }
+
+            else if (
+                packet.success &&
+                packet.percentage === 100
+            ) {
+
+                packetStatus.textContent =
+                    "✕ 100%";
+
+
+                packetStatus.className =
+                    "diagnostic-status diagnostic-down";
+
+            }
+
+            else {
+
+                packetStatus.textContent =
+                    "Unknown";
+
+
+                packetStatus.className =
+                    "diagnostic-status diagnostic-warning";
+
+            }
+
+
+            packetDetails.textContent =
+                packet.message;
+
+
+            // =========================
+            // DNS
+            // =========================
+
+            const dns =
+                data.dns;
+
+
+            const dnsStatus =
+                document.getElementById(
+                    "diagnosticDNSStatus"
+                );
+
+
+            const dnsDetails =
+                document.getElementById(
+                    "diagnosticDNSDetails"
+                );
+
+
+            if (dns.success) {
+
+                dnsStatus.textContent =
+                    "✓ Resolved";
+
+
+                dnsStatus.className =
+                    "diagnostic-status diagnostic-up";
+
+
+                dnsDetails.innerHTML =
+                    `IP Address: <strong>${escapeHtml(
+                        dns.ip_address
+                    )}</strong>`;
+
+            }
+
+            else {
+
+                dnsStatus.textContent =
+                    "✕ Failed";
+
+
+                dnsStatus.className =
+                    "diagnostic-status diagnostic-down";
+
+
+                dnsDetails.textContent =
+                    dns.message;
+
+            }
+
+
+            // =========================
+            // TCP
+            // =========================
+
+            const tcp =
+                data.tcp;
+
+
+            const tcpStatus =
+                document.getElementById(
+                    "diagnosticTCPStatus"
+                );
+
+
+            const tcpDetails =
+                document.getElementById(
+                    "diagnosticTCPDetails"
+                );
+
+
+            if (
+                tcp.success &&
+                tcp.status === "OPEN"
+            ) {
+
+                tcpStatus.textContent =
+                    "✓ OPEN";
+
+
+                tcpStatus.className =
+                    "diagnostic-status diagnostic-up";
+
+            }
+
+            else if (
+                tcp.success &&
+                tcp.status === "CLOSED/FILTERED"
+            ) {
+
+                tcpStatus.textContent =
+                    "⚠ CLOSED/FILTERED";
+
+
+                tcpStatus.className =
+                    "diagnostic-status diagnostic-warning";
+
+            }
+
+            else {
+
+                tcpStatus.textContent =
+                    "✕ ERROR";
+
+
+                tcpStatus.className =
+                    "diagnostic-status diagnostic-down";
+
+            }
+
+
+            tcpDetails.textContent =
+                tcp.message;
+
+
+            // =========================
+            // OVERALL
+            // =========================
+
+            const overall =
+                document.getElementById(
+                    "diagnosticOverall"
+                );
+
+
+            if (ping.reachable) {
+
+                overall.innerHTML = `
+
+                    <span class="diagnostic-up">
+
+                        ✓ ${escapeHtml(
+                            data.message
+                        )}
+
+                    </span>
+
+                `;
+
+            }
+
+            else {
+
+                overall.innerHTML = `
+
+                    <span class="diagnostic-down">
+
+                        ✕ ${escapeHtml(
+                            data.message
+                        )}
+
+                    </span>
+
+                `;
+
+            }
+
+
+        } catch (error) {
+
+            showAlert(
+                error.message,
+                "danger"
+            );
+
+
+            document.getElementById(
+                "diagnosticPingStatus"
+            ).textContent =
+                "Error";
+
+
+            document.getElementById(
+                "diagnosticPacketStatus"
+            ).textContent =
+                "Error";
+
+
+            document.getElementById(
+                "diagnosticDNSStatus"
+            ).textContent =
+                "Error";
+
+
+            document.getElementById(
+                "diagnosticTCPStatus"
+            ).textContent =
+                "Error";
+
+        }
+
+    }
+
+
+    // =========================================================
+    // ENTER KEY FOR TROUBLESHOOTER
+    // =========================================================
+
+    document
+        .getElementById(
+            "troubleshootHost"
+        )
+        .addEventListener(
+            "keydown",
+            function(event) {
+
+                if (event.key === "Enter") {
+
+                    runTroubleshooter();
+
+                }
+
+            }
+        );
+
+
+    // =========================================================
+    // INITIAL LOAD
+    // =========================================================
+
+    loadDevices();
+
+
+    // =========================================================
+    // AUTO REFRESH
+    // =========================================================
+
+    setInterval(
+        loadDevices,
+        30000
+    );
+
+</script>
+
+</body>
+</html>
